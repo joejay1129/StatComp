@@ -1,0 +1,17 @@
+Package: SA23204185
+Type: Package
+Title: IPW and Distribution
+Version: 1.0
+Date: 2023-12-07
+Author: Zhou Runlin
+Maintainer: Zhou Runlin <zrl1644@mail.ustc.edu.cn>
+Description: Several R and Rcpp function are included in this package.
+License: GPL (>= 2)
+Imports: Rcpp
+Suggests: knitr, rmarkdown, MASS, bayesmeta, coda, dplyr, ggplot2, purrr
+VignetteBuilder: knitr
+LinkingTo: Rcpp 
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+URL: http://github.com/joejay1129/StatComp 
+BugReports: http://github.com/joejay1129/StatComp/issues

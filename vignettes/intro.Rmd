@@ -11,18 +11,58 @@ vignette: >
 
 ## Overview
 
-__SA23204185__  package is a simple R package that implements the _IPW_ algorithm and the _Distributed_ algorithm described in the paper. It is capable of recovering a missing matrix in a distributed setting along with its corresponding right singular vectors.This package also contains a cpp function _targetoutofn_   calculate the  probability of  a certain number 'target' out of n (target <= n) delivery man with respectively different probability to accept an order.
+__SA23204185__  package is a simple R package that implements the _IPW_ algorithm and the _distribute_ algorithm described in the paper. It is capable of recovering a missing matrix in a distributed setting along with its corresponding right singular vectors. For convenience, we have directly encapsulated the simulation process in _distribute_monte_, so that by simply inputting the parameters, you can obtain the recovery discrepancy of the right singular vectors.This package also contains a cpp function _DAP_  calculate the  probability of  a certain number 'target' out of n (target <= n) delivery man with respectively different probability to accept an order.
 
 
 
-## CrossValidation  _add_
+## R function
+
+#### IPW algorithm
 
 ```{r}
-add <- function(a,b){
-    return(a+b)
+IPW <- function(M, K) {
+    n <- nrow(M)
+    d <- ncol(M)
+    Y <- ifelse(M == 0, 0, 1) 
+    
+    p_hat <- sum(Y) / (n * d)
+    
+    Sigma_phat <- crossprod(M) - (1 - p_hat) * diag(colSums(M^2))
+    
+    eigen_Sigma_phat <- eigen(Sigma_phat)
+    
+    V <- eigen_Sigma_phat$vectors[, 1:K]
+    
+    return(V = V)
 }
-
 ```
+
+* Clearly, the above code can handle individual missing matrices and return their right singular vectors.
+
+
+#### distribute algorithm
+```{r}
+distribute <- function(matrices_get) {
+    n <- nrow(matrices_get[[1]])
+    d <- ncol(matrices_get[[1]])
+    m <- length(matrices_get)
+    
+    Sigma_tilde <- matrix(0, d, d)
+    V <- vector("list", m)
+    
+    for (i in 1:m) {
+        V[[i]] <- IPW(matrices_get[[i]])
+        Sigma_tilde <- Sigma_tilde + (1 / m) * V[[i]] %*% t(V[[i]])
+    }
+    
+    V_res <- eigen(Sigma_tilde)$vec[, 1:2]
+    return(V_res)
+}
+```
+
+* Clearly, it is evident that the above code can handle matrix columns and utilize the method described in the paper to return more accurate estimates of the right singular vectors.
+
+* Both of the above algorithms are preparing for numerical simulations in the paper.
 
 ## A Cpp function 
 

@@ -347,19 +347,67 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div id="overview" class="section level2">
 <h2>Overview</h2>
 <p><strong>SA23204185</strong> package is a simple R package that
-implements the <em>IPW</em> algorithm and the <em>Distributed</em>
+implements the <em>IPW</em> algorithm and the <em>distribute</em>
 algorithm described in the paper. It is capable of recovering a missing
 matrix in a distributed setting along with its corresponding right
-singular vectors.This package also contains a cpp function
-<em>targetoutofn</em> calculate the probability of a certain number
-‘target’ out of n (target &lt;= n) delivery man with respectively
-different probability to accept an order.</p>
+singular vectors. For convenience, we have directly encapsulated the
+simulation process in <em>distribute_monte</em>, so that by simply
+inputting the parameters, you can obtain the recovery discrepancy of the
+right singular vectors.This package also contains a cpp function
+<em>DAP</em> calculate the probability of a certain number ‘target’ out
+of n (target &lt;= n) delivery man with respectively different
+probability to accept an order.</p>
 </div>
-<div id="crossvalidation-add" class="section level2">
-<h2>CrossValidation <em>add</em></h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>add <span class="ot">&lt;-</span> <span class="cf">function</span>(a,b){</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>    <span class="fu">return</span>(a<span class="sc">+</span>b)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>}</span></code></pre></div>
+<div id="r-function" class="section level2">
+<h2>R function</h2>
+<div id="ipw-algorithm" class="section level4">
+<h4>IPW algorithm</h4>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>IPW <span class="ot">&lt;-</span> <span class="cf">function</span>(M, K) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(M)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">ncol</span>(M)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    Y <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(M <span class="sc">==</span> <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>) </span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    </span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>    p_hat <span class="ot">&lt;-</span> <span class="fu">sum</span>(Y) <span class="sc">/</span> (n <span class="sc">*</span> d)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>    </span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>    Sigma_phat <span class="ot">&lt;-</span> <span class="fu">crossprod</span>(M) <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> p_hat) <span class="sc">*</span> <span class="fu">diag</span>(<span class="fu">colSums</span>(M<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>    </span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>    eigen_Sigma_phat <span class="ot">&lt;-</span> <span class="fu">eigen</span>(Sigma_phat)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>    </span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    V <span class="ot">&lt;-</span> eigen_Sigma_phat<span class="sc">$</span>vectors[, <span class="dv">1</span><span class="sc">:</span>K]</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>    </span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    <span class="fu">return</span>(<span class="at">V =</span> V)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>}</span></code></pre></div>
+<ul>
+<li>Clearly, the above code can handle individual missing matrices and
+return their right singular vectors.</li>
+</ul>
+</div>
+<div id="distribute-algorithm" class="section level4">
+<h4>distribute algorithm</h4>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>distribute <span class="ot">&lt;-</span> <span class="cf">function</span>(matrices_get) {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(matrices_get[[<span class="dv">1</span>]])</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">ncol</span>(matrices_get[[<span class="dv">1</span>]])</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">length</span>(matrices_get)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    </span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    Sigma_tilde <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, d, d)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    V <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, m)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    </span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>m) {</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>        V[[i]] <span class="ot">&lt;-</span> <span class="fu">IPW</span>(matrices_get[[i]])</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>        Sigma_tilde <span class="ot">&lt;-</span> Sigma_tilde <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">/</span> m) <span class="sc">*</span> V[[i]] <span class="sc">%*%</span> <span class="fu">t</span>(V[[i]])</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    }</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    </span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    V_res <span class="ot">&lt;-</span> <span class="fu">eigen</span>(Sigma_tilde)<span class="sc">$</span>vec[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>    <span class="fu">return</span>(V_res)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>}</span></code></pre></div>
+<ul>
+<li><p>Clearly, it is evident that the above code can handle matrix
+columns and utilize the method described in the paper to return more
+accurate estimates of the right singular vectors.</p></li>
+<li><p>Both of the above algorithms are preparing for numerical
+simulations in the paper.</p></li>
+</ul>
+</div>
 </div>
 <div id="a-cpp-function" class="section level2">
 <h2>A Cpp function</h2>
@@ -370,24 +418,24 @@ In this case you input a vector which contain probability of whether
 these delivery men will accept current order or not,the objective number
 of delivery men accepting the order and the total number of delivery
 men.The R code to call this function is as follows</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(Rcpp)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">cppFunction</span>(<span class="at">code=</span><span class="st">&#39;double  targetoutofn(NumericVector x, int target, int n) {</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="st">    double prob[n+1][target+1];</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="st">    prob[0][0] = 1;</span></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="st">    for(int i = 1; i &lt;= n; i++){</span></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="st">        prob[i][0] = prob[i-1][0]*(1-x[i-1]);</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="st">    for(int i = 1; i &lt;= n; i++){</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="st">        for(int k = 1; k &lt;= i &amp;&amp; k &lt;= target; k++){</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="st">            prob[i][k] = prob[i-1][k] * (1-x[i-1]) + prob[i-1][k-1] * x[i-1];</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="st">        }</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="st">    }</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="st">    return prob[n][target];</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="st">    }&#39;</span>)</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>target <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">targetoutofn</span>(prob, target, n)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(Rcpp)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">cppFunction</span>(<span class="at">code=</span><span class="st">&#39;double  targetoutofn(NumericVector x, int target, int n) {</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="st">    double prob[n+1][target+1];</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="st">    prob[0][0] = 1;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="st">    for(int i = 1; i &lt;= n; i++){</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="st">        prob[i][0] = prob[i-1][0]*(1-x[i-1]);</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="st">    for(int i = 1; i &lt;= n; i++){</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="st">        for(int k = 1; k &lt;= i &amp;&amp; k &lt;= target; k++){</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="st">            prob[i][k] = prob[i-1][k] * (1-x[i-1]) + prob[i-1][k-1] * x[i-1];</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="st">        }</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="st">    }</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="st">    return prob[n][target];</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="st">    }&#39;</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>prob <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>target <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="fu">targetoutofn</span>(prob, target, n)</span></code></pre></div>
 <pre><code>## [1] 0.15625</code></pre>
 </div>
 

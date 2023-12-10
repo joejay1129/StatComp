@@ -5,11 +5,11 @@
   IPW and Distribution
 }
 \description{
-  Reproduction of the IPW and distributed algorithms as well as a calculator of a delivery problem
+  Reproduction of the IPW and distributed algorithms,a function encapsulating a simulation process as well as a calculator of a delivery problem
 }
 \details{
-  Develop an R package to reproduce the algorithms in the paper 'Distributed learning in recommender systems,' including the IPW algorithm for recovering the right singular values of the missing matrix and the Distribution algorithm for distributed processing.
-This package also contains a cpp function targetoutofn  to calculate the  probability of  a certain number 'target' out of n (target <= n) delivery man with respectively different probability to accept an order.
+  Develop an R package to reproduce the algorithms in the paper 'Distributed learning in recommender systems,' including the IPW algorithm for recovering the right singular values of the missing matrix and the Distribution algorithm for distributed processing. We have also encapsulated the simulation process, making it easy to invoke and use.
+This package includes a C++ function called targetoutofn that calculates the probability of having a specific number of deliverymen, denoted as 'target', out of a total of 'n' (where 'target' is less than or equal to 'n'). Each deliveryman has a different probability of accepting an order.
 }
 \author{
 Zhou Runlin

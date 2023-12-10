@@ -10,22 +10,22 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// timesTwo
-NumericVector timesTwo(NumericVector x, int target, int n);
-RcppExport SEXP _SA23204185_timesTwo(SEXP xSEXP, SEXP targetSEXP, SEXP nSEXP) {
+// DAP
+NumericVector DAP(NumericVector x, int target, int n);
+RcppExport SEXP _SA23204185_DAP(SEXP xSEXP, SEXP targetSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
     Rcpp::traits::input_parameter< int >::type target(targetSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x, target, n));
+    rcpp_result_gen = Rcpp::wrap(DAP(x, target, n));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SA23204185_timesTwo", (DL_FUNC) &_SA23204185_timesTwo, 3},
+    {"_SA23204185_DAP", (DL_FUNC) &_SA23204185_DAP, 3},
     {NULL, NULL, 0}
 };
 

@@ -46,3 +46,100 @@ distribute <- function(matrices_get) {
     V_res <- eigen(Sigma_tilde)$vec[, 1:2]
     return(V_res)
 }
+
+
+initial<-function(n, B, seed_1){
+    set.seed(seed_1)
+    A <- matrix(runif(n * 2, min = -5, max = 5), n, 2)
+    M0 <- A%*%t(B)
+    
+    return(M0)
+}
+
+
+initial_matrices <- function(n, m){
+    matrices_initial <- vector("list", m)
+    
+    d <- round(2 * sqrt(n)) 
+    set.seed(1)
+    B <- matrix(runif(d * 2, min = -5, max = 5), d, 2)
+    
+    for (i in 1:m) {
+        matrices_initial[[i]] <- initial(n, B = B, seed_1 = i)
+    }
+    
+    return(matrices_initial)
+}
+
+
+SVD_self<-function(M){
+    Sigma_hat<-t(M)%*%M
+    V<-eigen(Sigma_hat)$vec
+}
+
+SVDt_self<-function(M){
+    Sigma_hat<-M%*%t(M)
+    U<-eigen(Sigma_hat)$vec
+}
+
+create <- function(p, M0, seed_2) {
+    n <- nrow(M0)
+    d <- ncol(M0)
+    
+    set.seed(seed_2)
+    M <- M0 + matrix(rnorm(n * d, 0, 1), n, d)
+    P <- matrix(data = rbinom(n * d, 1, p), n, d)
+    M_obs <- M * P  # 使用矩阵操作替代循环更新 M_obs
+    
+    return(M_obs)
+}
+
+
+create_matrices <- function(p, matrices_initial, k = 1) {
+    m <- length(matrices_initial)
+    matrices_create <- vector("list", m)
+    
+    for (i in 1:m) {
+        matrices_create[[i]] <- create(p = p, M0 = matrices_initial[[i]], seed_2 = k * m + i)
+    }
+    
+    return(matrices_create)
+}
+
+
+
+rho<-function(U,V){
+    norm((U%*%t(U)-V%*%t(V)),type="F")
+}
+
+
+#' @title simulation
+#' @description Directly encapsulating the numerical simulation process, you can obtain the distance rho 
+#' between the differences in the right singular vectors before and after the response by simply inputting the required parameters.
+#' @param m Number of sub-servers
+#' @param n data volume on each server
+#' @param p missing probability p
+#' @param monte number of Monte Carlo iterations
+#' @return the common right singular vectors of input matrices
+#' @import stats
+#' @examples
+#' \dontrun{
+#' distribute_monte(m = 10, n = 100, p = 0.1, monte = 10)
+#' }
+#' @export
+distribute_monte <- function(m, n, p, monte) {
+    rho_ans <- rep(0, monte)
+    d <- round(2 * sqrt(n)) 
+    
+    set.seed(1)
+    B <- matrix(runif(d * 2, min = -5, max = 5), d, 2)
+    V <- SVDt_self(B)[, 1:2]
+    
+    matrices_initial <- initial_matrices(n = n, m = m)
+    for (i in 1:monte) {
+        matrices_get <- create_matrices(p = p, matrices_initial = matrices_initial, k = i)
+        V_res <- distribute(matrices_get)
+        rho_ans[i] <- rho(V_res, V)
+    }
+    return(mean(rho_ans))
+}

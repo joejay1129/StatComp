@@ -1,6 +1,6 @@
 Package: SA23204185
 Type: Package
-Title: IPW and Distribute Algorithm
+Title: IPW and Distribute
 Version: 1.0
 Date: 2023-12-07
 Author: Zhou Runlin
@@ -8,7 +8,7 @@ Maintainer: Zhou Runlin <zrl1644@mail.ustc.edu.cn>
 Description: Several R and Rcpp function are included in this package.
 License: GPL (>= 2)
 Imports: Rcpp
-Suggests: knitr, rmarkdown, MASS, bayesmeta, coda, dplyr, ggplot2, purrr
+Suggests: knitr, rmarkdown, MASS, bayesmeta, coda, dplyr, ggplot2, purrr, stats
 VignetteBuilder: knitr
 LinkingTo: Rcpp 
 RoxygenNote: 7.2.3

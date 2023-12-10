@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-//' @title A multi-prob calculator
+//' @title A multi-prob calculator for Deliveryman Assignment Problem
 //' @description A multi-prob calculator using Rcpp
 //' @param x the probability vector of each deliveryman
 //' @param target there are excatly target number of deliverymen take order
@@ -12,12 +12,12 @@ using namespace Rcpp;
 //' prob <- c(0.5, 0.5, 0.5, 0.5, 0.5)
 //' target <- 1
 //' n <- 5
-//' targetoutofn(prob, target, n)
+//' DAP(prob, target, n)
 //' }
 //' @importFrom Rcpp evalCpp
 //' @export
 // [[Rcpp::export]]
-NumericVector timesTwo(NumericVector x, int target, int n) {
+NumericVector DAP(NumericVector x, int target, int n) {
     double prob[n+1][target+1];
     prob[0][0] = 1;
     for(int i = 1; i <= n; i++){

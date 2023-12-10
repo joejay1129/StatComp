@@ -1,0 +1,52 @@
+---
+title: "Introduction to SA23204185"
+author: "SA23204185"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SA23204185}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+__SA23204185__  package is a simple R package that implements the _IPW_ algorithm and the _Distributed_ algorithm described in the paper. It is capable of recovering a missing matrix in a distributed setting along with its corresponding right singular vectors.This package also contains a cpp function _targetoutofn_   calculate the  probability of  a certain number 'target' out of n (target <= n) delivery man with respectively different probability to accept an order.
+
+
+
+## CrossValidation  _add_
+
+```{r}
+add <- function(a,b){
+    return(a+b)
+}
+
+```
+
+## A Cpp function 
+
+  This package also contains a cpp function to calculate the  probability of  a certain number 'target' out of n (target <= n) delivery man with respectively different probability to accept an order.
+  In this case you input a  vector which contain probability of whether these delivery men will accept current order or not,the objective number of delivery men accepting the order and the total number of delivery men.The R code to call this function is as follows
+
+```{r}
+library(Rcpp)
+cppFunction(code='double  targetoutofn(NumericVector x, int target, int n) {
+    double prob[n+1][target+1];
+    prob[0][0] = 1;
+    for(int i = 1; i <= n; i++){
+        prob[i][0] = prob[i-1][0]*(1-x[i-1]);
+    }
+    for(int i = 1; i <= n; i++){
+        for(int k = 1; k <= i && k <= target; k++){
+            prob[i][k] = prob[i-1][k] * (1-x[i-1]) + prob[i-1][k-1] * x[i-1];
+        }
+    }
+    return prob[n][target];
+    }')
+prob <- c(0.5, 0.5, 0.5, 0.5, 0.5)
+target <- 1
+n <- 5
+targetoutofn(prob, target, n)
+```
+
